@@ -14,12 +14,6 @@ typedef struct{
 /*Utilitários de terminal*/
 void limpar_tela();
 
-void limpar_buffer(void);
-
-void pausar(void);
-
-int ler_opcao(void);
-
 
 /*Funções do sistema (a implementar)*/
 void cadastrar_livro();
