@@ -3,16 +3,12 @@
 #ifndef FUNCOES_H
 #define FUNCOES_H
 
-typedef struct{
-    int codigo;
-    char titulo[50];
-    char autor[50];
-    int ano;
-    int quantidade;
-}Livro;
 
 /*Utilitários de terminal*/
 void limpar_tela();
+void limpar_buffer();
+void pausar();
+int ler_opcao();
 
 
 /*Funções do sistema (a implementar)*/
