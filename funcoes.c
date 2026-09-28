@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "funcoes.h"
 #include <stdlib.h>
-
+#include <string.h>
 
 
 /*Utilitários de terminal*/
@@ -210,6 +210,7 @@ void registrar_emprestimo()   { printf("\n[Registrar emprestimo]\n"); }
 void registrar_devolucao()    { printf("\n[Registrar devolucao]\n"); }
 
 
+//Funções de listagem
 void listar_livros() {
     printf("\n[Listar livros]\n");
 
@@ -283,7 +284,7 @@ void listar_emprestimos(){
     carregar_dados();
 
     if (total_emprestimos == 0) {
-        printf("\nNenhum usuario cadastrado em %s.\n", ARQ_EMPRESTIMOS);
+        printf("\nNenhum emprestimo cadastrado em %s.\n", ARQ_EMPRESTIMOS);
         return;
     }
 
@@ -297,13 +298,107 @@ void listar_emprestimos(){
             emprestimos[i].codigo_livro, emprestimos[i].matricula, status);
     }
 
-    printf("\nTotal de usuarios cadastrados: %d\n", total_emprestimos);
+    printf("\nTotal de emprestimos cadastrados: %d\n", total_emprestimos);
+}
+
+//Funções de busca
+void buscar_por_titulo(){
+    printf("\n[Buscar livro por titulo]\n"); 
+    salvar_dados();
+
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char titulo[100];
+    printf("Titulo:\n");
+    scanf("%99[^\n]", &titulo);
+    limpar_buffer();
+
+    int n = 0;
+    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
+           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
+    printf("-------+-------------------------------------+---------------------------+------+------\n");
+    for(int i=0; i <total_livros; i++){
+        if (strstr(livros[i].titulo, titulo) != NULL){
+            printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
+               livros[i].codigo, livros[i].titulo, livros[i].autor,
+               livros[i].ano, livros[i].quantidade);
+               n++;
+            }
+    };
+    if(n == 0){
+        printf("Nenhum livro encontrado");
+    }
 }
 
 
-void buscar_por_titulo()      { printf("\n[Buscar livro por titulo]\n"); }
-void buscar_por_autor()       { printf("\n[Buscar livro por autor]\n"); }
-void buscar_por_matricula()   { printf("\n[Buscar usuario por matricula]\n"); }
+void buscar_por_autor()       {
+    printf("\n[Buscar livro por autor]\n"); 
+    salvar_dados();
+
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char autor[100];
+    printf("Titulo:\n");
+    scanf("%99[^\n]", &autor);
+    limpar_buffer();
+
+    int n = 0;
+
+    
+    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
+           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
+    printf("-------+-------------------------------------+---------------------------+------+------\n");
+    for(int i=0; i <total_livros; i++){
+        if (strstr(livros[i].autor, autor) != NULL){
+            printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
+               livros[i].codigo, livros[i].titulo, livros[i].autor,
+               livros[i].ano, livros[i].quantidade);
+               n++;
+            }
+    };
+    if(n == 0){
+        printf("Nenhum livro encontrado");
+    }
+}
+void buscar_por_matricula()   { 
+    printf("\n[Buscar usuario por matricula]\n");
+
+    salvar_dados();
+
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char matricula[100];
+    printf("Matricula:\n");
+    scanf("%99[^\n]", &matricula);
+    limpar_buffer();
+
+    int n = 0;
+    printf("\n%-12s | %-35s | %-25s\n",
+           "Matricula", "Nome", "Curso");
+    printf("-------------+-------------------------------------+---------------------------\n");
+    for(int i=0; i <total_usuarios; i++){
+        if (strstr(usuarios[i].matricula, matricula) != NULL){
+            printf("%-12s | %-35s | %-25s\n",
+            usuarios[i].matricula, usuarios[i].nome, usuarios[i].curso);
+            n++;
+            }
+    };
+    if(n == 0){
+        printf("Nenhum usuario encontrado");
+    }
+    
+}
+
+
 
 
 
