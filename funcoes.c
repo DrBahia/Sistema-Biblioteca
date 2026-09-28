@@ -204,8 +204,52 @@ int salvar_dados() {
 
 /*Funções do sistema (a fazer)*/
 
-void cadastrar_livro()        { printf("\n[Cadastrar livro]\n"); }
-void cadastrar_usuario()      { printf("\n[Cadastrar usuario]\n"); }
+void cadastrar_livro() {
+    printf("\n[Cadastrar livro]\n");
+    if (total_livros >= MAX_LIVROS) {
+        printf("\nErro: Limite máximo de %d livros.", MAX_LIVROS);
+        return;
+    }
+    Livro novo;
+    printf("Código do livro: ");
+    scanf("%d", &novo.codigo);
+    printf("Titulo: ");
+    scanf(" %99[^\n]", novo.titulo);
+
+    printf("Autor: ");
+    scanf(" %99[^\n]", novo.autor);
+
+    printf("Ano de Publicacao: ");
+    scanf("%d", &novo.ano);
+
+    printf("Quantidade em Estoque: ");
+    scanf("%d", &novo.quantidade);
+
+    livros[total_livros] = novo;
+    total_livros++;
+
+    printf("\nLivro cadastrado com sucesso.");
+}
+void cadastrar_usuario() {
+    printf("\n[Cadastrar usuario]\n");
+    if (total_usuarios >= MAX_USUARIOS) {
+        printf("\nErro, Limite máximo de %d usuários", MAX_USUARIOS);
+        return;
+    }
+    Usuario novo;
+
+    printf("Matrícula: (ex: 00008886)");
+    scanf("%19[^\n]", novo.matricula);
+
+    printf("Nome do aluno: ");
+    scanf(" %99[^\n]", novo.nome);
+
+    printf("Curso: ");
+    scanf(" %99[^\n]", novo.curso);
+
+    usuarios[total_usuarios] = novo;
+    total_usuarios++;
+}
 void registrar_emprestimo()   { printf("\n[Registrar emprestimo]\n"); }
 void registrar_devolucao()    { printf("\n[Registrar devolucao]\n"); }
 void listar_livros()          { printf("\n[Listar livros]\n"); }
