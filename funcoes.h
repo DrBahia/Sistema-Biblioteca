@@ -10,6 +10,15 @@ void limpar_buffer();
 void pausar();
 int ler_opcao();
 
+/*Estrutura de dados*/
+void carregar_livros();
+void carregar_usuarios();
+void carregar_emprestimos();
+void carregar_dados();
+int salvar_livros();
+int salvar_usuarios();
+int salvar_emprestimos();
+int salvar_dados();
 
 /*Funções do sistema (a implementar)*/
 void cadastrar_livro();
@@ -22,8 +31,7 @@ void listar_emprestimos();
 void buscar_por_titulo();
 void buscar_por_autor();
 void buscar_por_matricula();
-void carregar_dados();
-void salvar_dados();
+
 
 
 /*Menu Principal*/
