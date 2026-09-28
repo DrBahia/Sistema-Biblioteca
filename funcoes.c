@@ -14,7 +14,7 @@ void limpar_tela() {
 #endif
 }
 
-void limpar_buffer(void) {
+void limpar_buffer() {
     scanf("%*[^\n]");
     scanf("%*c");
 }
@@ -208,9 +208,99 @@ void cadastrar_livro()        { printf("\n[Cadastrar livro]\n"); }
 void cadastrar_usuario()      { printf("\n[Cadastrar usuario]\n"); }
 void registrar_emprestimo()   { printf("\n[Registrar emprestimo]\n"); }
 void registrar_devolucao()    { printf("\n[Registrar devolucao]\n"); }
-void listar_livros()          { printf("\n[Listar livros]\n"); }
-void listar_usuarios()        { printf("\n[Listar usuarios]\n"); }
-void listar_emprestimos()     { printf("\n[Listar emprestimos]\n"); }
+
+
+void listar_livros() {
+    printf("\n[Listar livros]\n");
+
+    /* Grava o que estiver em memoria para nao perder cadastros recentes */
+    salvar_dados();
+
+    /* Zera os contadores antes de recarregar para nao duplicar registros */
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_livros == 0) {
+        printf("\nNenhum livro cadastrado em %s.\n", ARQ_LIVROS);
+        return;
+    }
+
+    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
+           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
+    printf("-------+-------------------------------------+---------------------------+------+------\n");
+
+    for (int i = 0; i < total_livros; i++) {
+        printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
+               livros[i].codigo, livros[i].titulo, livros[i].autor,
+               livros[i].ano, livros[i].quantidade);
+    }
+
+    printf("\nTotal de livros cadastrados: %d\n", total_livros);
+}
+
+void listar_usuarios(){
+    printf("\n[Listar usuarios]\n");
+
+    /* Grava o que estiver em memoria para nao perder cadastros recentes */
+    salvar_dados();
+
+    /* Zera os contadores antes de recarregar para nao duplicar registros */
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_usuarios == 0) {
+        printf("\nNenhum usuario cadastrado em %s.\n", ARQ_USUARIOS);
+        return;
+    }
+
+    printf("\n%-12s | %-35s | %-25s\n",
+           "Matricula", "Nome", "Curso");
+    printf("-------------+-------------------------------------+---------------------------\n");
+
+    for (int i = 0; i < total_usuarios; i++) {
+        printf("%-12s | %-35s | %-25s\n",
+            usuarios[i].matricula, usuarios[i].nome, usuarios[i].curso);
+    }
+
+    printf("\nTotal de usuarios cadastrados: %d\n", total_usuarios);
+}
+
+
+void listar_emprestimos(){
+    printf("\n[Listar emprestimos]\n");
+
+    /* Grava o que estiver em memoria para nao perder cadastros recentes */
+    salvar_dados();
+
+    /* Zera os contadores antes de recarregar para nao duplicar registros */
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_emprestimos == 0) {
+        printf("\nNenhum usuario cadastrado em %s.\n", ARQ_EMPRESTIMOS);
+        return;
+    }
+
+    
+    printf("\n%-16s | %-12s | %-11s\n",
+           "Codigo do livro", "Matricula", "Devolucao");
+    printf("-----------------+-------------+-------------\n");
+    for (int i = 0; i < total_emprestimos; i++) {
+        char *status = (emprestimos[i].devolvido == 1) ? "FEITA" : "PENDENTE";
+        printf("%-16d | %-12s | %-11s\n",
+            emprestimos[i].codigo_livro, emprestimos[i].matricula, status);
+    }
+
+    printf("\nTotal de usuarios cadastrados: %d\n", total_emprestimos);
+}
+
+
 void buscar_por_titulo()      { printf("\n[Buscar livro por titulo]\n"); }
 void buscar_por_autor()       { printf("\n[Buscar livro por autor]\n"); }
 void buscar_por_matricula()   { printf("\n[Buscar usuario por matricula]\n"); }
@@ -219,7 +309,7 @@ void buscar_por_matricula()   { printf("\n[Buscar usuario por matricula]\n"); }
 
 /*Menu Principal*/
 void menu_principal(){
-    int opcao;
+    int opcao = -1;
     while (opcao != 0){
         limpar_tela();
         printf("          SISTEMA DE BIBLIOTECA\n");
