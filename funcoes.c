@@ -210,32 +210,35 @@ void cadastrar_livro() {
         printf("\nErro: Limite máximo de %d livros.", MAX_LIVROS);
         return;
     }
-    Livro novo;
-    printf("Código do livro: ");
-    scanf("%d", &novo.codigo);
+    int temp_codigo;
+    printf("Codigo numerico do Livro: ");
+    scanf("%d", &temp_codigo);
 
     for (int i = 0; i < total_livros; i++) {
-        if (livros[i].codigo == novo.codigo) {
-            printf("Ja existe um livro registrado com esse codigo.");
+        if (livros[i].codigo == temp_codigo) {
+            printf("\nErro: Ja existe um livro registado com esse codigo\n");
             return;
         }
     }
+
+    livros[total_livros].codigo = temp_codigo;
+
     printf("Titulo: ");
-    scanf(" %99[^\n]", novo.titulo);
+    scanf(" %99[^\n]", livros[total_livros].titulo);
 
     printf("Autor: ");
-    scanf(" %99[^\n]", novo.autor);
+    scanf(" %99[^\n]", livros[total_livros].autor);
 
     printf("Ano de Publicacao: ");
-    scanf("%d", &novo.ano);
+    scanf("%d", &livros[total_livros].ano);
 
     printf("Quantidade em Estoque: ");
-    scanf("%d", &novo.quantidade);
+    scanf("%d", &livros[total_livros].quantidade);
 
-    livros[total_livros] = novo;
     total_livros++;
+    salvar_dados();
 
-    printf("\nLivro cadastrado com sucesso.");
+    printf("\nLivro cadastrado com sucesso.\n");
 }
 void cadastrar_usuario() {
     printf("\n[Cadastrar usuario]\n");
@@ -243,26 +246,29 @@ void cadastrar_usuario() {
         printf("\nErro, Limite máximo de %d usuários", MAX_USUARIOS);
         return;
     }
-    Usuario novo;
-
-    printf("Matrícula: (ex: 00008886)");
-    scanf("%19[^\n]", novo.matricula);
+    char temp_matricula[20];
+    printf("Matricula (ex: 2026001): ");
+    scanf(" %19[^\n]", temp_matricula);
 
     for (int i = 0; i < total_usuarios; i++) {
-        if(strcmp(usuarios[i].matricula, novo.matricula) == 0) {
-            printf("Erro, ja esixte um aluno registrado com essa matricula");
+        if (strcmp(usuarios[i].matricula, temp_matricula) == 0) {
+            printf("\nErro: Ja existe um aluno registado com essa matricula\n");
             return;
         }
     }
 
+    strcpy(usuarios[total_usuarios].matricula, temp_matricula);
+
     printf("Nome do aluno: ");
-    scanf(" %99[^\n]", novo.nome);
+    scanf(" %99[^\n]", usuarios[total_usuarios].nome);
 
     printf("Curso: ");
-    scanf(" %99[^\n]", novo.curso);
+    scanf(" %99[^\n]", usuarios[total_usuarios].curso);
 
-    usuarios[total_usuarios] = novo;
     total_usuarios++;
+    salvar_dados();
+
+    printf("\nUsuario cadastrado com sucesso\n");
 }
 void registrar_emprestimo() {
     printf("\n[Registrar emprestimo]\n");
