@@ -264,8 +264,77 @@ void cadastrar_usuario() {
     usuarios[total_usuarios] = novo;
     total_usuarios++;
 }
-void registrar_emprestimo()   { printf("\n[Registrar emprestimo]\n"); }
-void registrar_devolucao()    { printf("\n[Registrar devolucao]\n"); }
+void registrar_emprestimo() {
+    printf("\n[Registrar emprestimo]\n");
+
+    if (total_emprestimos >= MAX_EMPRESTIMOS) {
+        printf("\nErro, Limite maximo de emprestimos atingido.");
+        return;
+    }
+    Emprestimo novo;
+    int indice_livro = -1;
+
+    printf("Codigo do livro: ");
+    scanf("%d", &novo.codigo_livro);
+
+    for (int i = 0; i < total_livros; i++) {
+        if (livros[i].codigo == novo.codigo_livro) {
+            indice_livro = i;
+            break;
+        }
+    }
+    if (indice_livro == -1) {
+        printf("Erro: Codigo do livro nao encontrado no sistema.\n");
+        return;
+    }
+    if (livros[indice_livro].quantidade <= 0) {
+        printf("Erro: Nao ha exemplares deste livro disponiveis no momento.\n");
+        return;
+    }
+
+    printf("Matrícula do Utilizador: ");
+    scanf(" %19[^\n]", novo.matricula);
+
+    novo.devolvido = 0;
+    emprestimos[total_emprestimos] = novo;
+    total_emprestimos++;
+    livros[indice_livro].quantidade--;
+
+    printf("\nEmprestimo registrado.\n");
+}
+void registrar_devolucao() {
+    printf("\n[Registrar devolucao]\n");
+    int cod_livro;
+    char mat_aluno[20];
+    int encontrado = 0;
+
+    printf("Código do Livro devolvido: ");
+    scanf("%d", &cod_livro);
+
+    printf("Matrícula do Utilizador: ");
+    scanf(" %19[^\n]", mat_aluno);
+
+    for(int i = 0; i < total_emprestimos; i++) {
+        if (emprestimos[i].codigo_livro == cod_livro && 
+            strcmp(emprestimos[i].matricula, mat_aluno) == 0 && 
+            emprestimos[i].devolvido == 0) {
+            emprestimos[i].devolvido = 1;
+            encontrado = 1;
+
+            for (int j = 0; j < total_livros; j++) {
+                if(livros[j].codigo == cod_livro) {
+                    livros[j].quantidade++;
+                    break;
+                }
+            }
+            printf("Devolucao cadastrada com sucesso.");
+            break;
+        }
+    }
+    if (encontrado == 0){
+        printf("Erro, nenhum emprestimo em aberto condizentes com esses dados.");
+    }
+}
 void listar_livros()          { printf("\n[Listar livros]\n"); }
 void listar_usuarios()        { printf("\n[Listar usuarios]\n"); }
 void listar_emprestimos()     { printf("\n[Listar emprestimos]\n"); }
