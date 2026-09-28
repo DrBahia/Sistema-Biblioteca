@@ -213,6 +213,13 @@ void cadastrar_livro() {
     Livro novo;
     printf("Código do livro: ");
     scanf("%d", &novo.codigo);
+
+    for (int i = 0; i < total_livros; i++) {
+        if (livros[i].codigo == novo.codigo) {
+            printf("Ja existe um livro registrado com esse codigo.");
+            return;
+        }
+    }
     printf("Titulo: ");
     scanf(" %99[^\n]", novo.titulo);
 
@@ -240,6 +247,13 @@ void cadastrar_usuario() {
 
     printf("Matrícula: (ex: 00008886)");
     scanf("%19[^\n]", novo.matricula);
+
+    for (int i = 0; i < total_usuarios; i++) {
+        if(strcmp(usuarios[i].matricula, novo.matricula) == 0) {
+            printf("Erro, ja esixte um aluno registrado com essa matricula");
+            return;
+        }
+    }
 
     printf("Nome do aluno: ");
     scanf(" %99[^\n]", novo.nome);
