@@ -660,6 +660,10 @@ void menu_principal(){
         printf("  13 - Historico de um usuario\n");
         printf("  14 - Historico de todos os usuarios\n");
         printf("---------------------------------------------\n");
+        printf("  BUSCA POR MULTIPLOS CRITERIOS\n");
+        printf("  15 - Livros (titulo + autor + ano)\n");
+        printf("  16 - Usuarios (curso + livro emprestado + situacao)\n");
+        printf("---------------------------------------------\n");
         printf("   0 - Salvar e sair\n");
         printf("=============================================\n");
         printf("Escolha uma opcao: ");
@@ -681,12 +685,14 @@ void menu_principal(){
             case 12: listar_usuarios_ordenados(); break;
             case 13: historico_por_usuario();     break;
             case 14: historico_todos_usuarios();  break;
+            case 15: busca_multipla_livros();     break;
+            case 16: busca_multipla_usuarios();   break;
             case 0:
                 salvar_dados();
                 printf("\nDados salvos. Encerrando o sistema\n");
                 break;
             default:
-                printf("\nOpcao invalida! Digite um numero de 0 a 14.\n");
+                printf("\nOpcao invalida! Digite um numero de 0 a 16.\n");
         }
 
         if (opcao != 0)
@@ -887,4 +893,162 @@ void historico_todos_usuarios() {
     printf("\n=============================================\n");
     printf("Usuarios cadastrados: %d | Emprestimos registrados: %d\n",
            total_usuarios, total_emprestimos);
+}
+
+
+/*Busca por multiplos criterios*/
+
+/* Le um criterio de texto opcional. Se o usuario so apertar ENTER,
+   o destino fica vazio ("") e o criterio e ignorado na busca. */
+void ler_criterio(char destino[100]) {
+    destino[0] = '\0';
+    scanf("%99[^\n]", destino);
+    limpar_buffer();
+}
+
+/* Busca livros combinando titulo, autor e ano. Cada criterio deixado em
+   branco e ignorado; o livro so aparece se atender TODOS os criterios
+   preenchidos (E logico). Ex.: autor "Machado" + ano 1899. */
+void busca_multipla_livros() {
+    printf("\n[Busca de livros por multiplos criterios]\n");
+    printf("Deixe em branco (ENTER) o campo que nao quiser usar.\n\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char titulo[100], autor[100], ano_txt[100];
+    int ano = 0;
+
+    printf("Titulo (ou parte): ");
+    ler_criterio(titulo);
+    printf("Autor (ou parte): ");
+    ler_criterio(autor);
+    printf("Ano de publicacao: ");
+    ler_criterio(ano_txt);
+
+    if (ano_txt[0] != '\0' && sscanf(ano_txt, "%d", &ano) != 1) {
+        printf("\nErro: ano invalido.\n");
+        return;
+    }
+
+    if (titulo[0] == '\0' && autor[0] == '\0' && ano_txt[0] == '\0') {
+        printf("\nErro: preencha pelo menos um criterio.\n");
+        return;
+    }
+
+    int n = 0;
+    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
+           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
+    printf("-------+-------------------------------------+---------------------------+------+------\n");
+
+    for (int i = 0; i < total_livros; i++) {
+        if (titulo[0] != '\0' && strstr(livros[i].titulo, titulo) == NULL)
+            continue;
+        if (autor[0] != '\0' && strstr(livros[i].autor, autor) == NULL)
+            continue;
+        if (ano_txt[0] != '\0' && livros[i].ano != ano)
+            continue;
+
+        printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
+               livros[i].codigo, livros[i].titulo, livros[i].autor,
+               livros[i].ano, livros[i].quantidade);
+        n++;
+    }
+
+    if (n == 0)
+        printf("Nenhum livro atende a todos os criterios.\n");
+    else
+        printf("\nLivros encontrados: %d\n", n);
+}
+
+/* Busca usuarios combinando curso, livro emprestado (titulo ou parte) e
+   situacao do emprestimo. Cada criterio em branco e ignorado.
+   Se livro ou situacao forem informados, o usuario so aparece se tiver
+   pelo menos um emprestimo que atenda aos dois; esses emprestimos sao
+   listados abaixo dele. Ex.: curso "Computacao" + livro "Principe". */
+void busca_multipla_usuarios() {
+    printf("\n[Busca de usuarios por multiplos criterios]\n");
+    printf("Deixe em branco (ENTER) o campo que nao quiser usar.\n\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char curso[100], livro[100], situacao_txt[100];
+    int situacao = 0;   /* 0 = qualquer, 1 = em aberto, 2 = devolvido */
+
+    printf("Curso (ou parte): ");
+    ler_criterio(curso);
+    printf("Titulo do livro emprestado (ou parte): ");
+    ler_criterio(livro);
+    printf("Situacao (1 = em aberto, 2 = devolvido, ENTER = qualquer): ");
+    ler_criterio(situacao_txt);
+
+    if (situacao_txt[0] != '\0' &&
+        (sscanf(situacao_txt, "%d", &situacao) != 1 || situacao < 1 || situacao > 2)) {
+        printf("\nErro: situacao invalida. Use 1, 2 ou ENTER.\n");
+        return;
+    }
+
+    if (curso[0] == '\0' && livro[0] == '\0' && situacao == 0) {
+        printf("\nErro: preencha pelo menos um criterio.\n");
+        return;
+    }
+
+    int filtra_emprestimo = (livro[0] != '\0' || situacao != 0);
+    int n = 0;
+
+    for (int i = 0; i < total_usuarios; i++) {
+        if (curso[0] != '\0' && strstr(usuarios[i].curso, curso) == NULL)
+            continue;
+
+        int encontrados = 0;
+
+        for (int e = 0; e < total_emprestimos && filtra_emprestimo; e++) {
+            if (strcmp(emprestimos[e].matricula, usuarios[i].matricula) != 0)
+                continue;
+            if (situacao == 1 && emprestimos[e].devolvido != 0)
+                continue;
+            if (situacao == 2 && emprestimos[e].devolvido != 1)
+                continue;
+
+            char *titulo = "(livro nao encontrado)";
+            for (int j = 0; j < total_livros; j++) {
+                if (livros[j].codigo == emprestimos[e].codigo_livro) {
+                    titulo = livros[j].titulo;
+                    break;
+                }
+            }
+            if (livro[0] != '\0' && strstr(titulo, livro) == NULL)
+                continue;
+
+            if (encontrados == 0) {
+                printf("\n%s | %s | %s\n", usuarios[i].matricula,
+                       usuarios[i].nome, usuarios[i].curso);
+            }
+            char *status = (emprestimos[e].devolvido == 1) ? "DEVOLVIDO" : "EM ABERTO";
+            printf("    %-6d | %-35.35s | %-10s\n",
+                   emprestimos[e].codigo_livro, titulo, status);
+            encontrados++;
+        }
+
+        if (filtra_emprestimo && encontrados == 0)
+            continue;
+
+        if (!filtra_emprestimo) {
+            printf("\n%s | %s | %s\n", usuarios[i].matricula,
+                   usuarios[i].nome, usuarios[i].curso);
+        }
+        n++;
+    }
+
+    if (n == 0)
+        printf("\nNenhum usuario atende a todos os criterios.\n");
+    else
+        printf("\nUsuarios encontrados: %d\n", n);
 }

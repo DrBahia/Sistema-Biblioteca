@@ -49,6 +49,12 @@ void listar_usuarios_ordenados();
 /*Historico por usuario*/
 void exibir_historico_usuario(int x);
 void historico_por_usuario();
-void historico_todos_usuarios();
+void historico_todos_usuarios();\
+
+
+/*Busca por multiplos criterios*/
+void ler_criterio(char destino[100]);
+void busca_multipla_livros();
+void busca_multipla_usuarios();
 
 #endif
