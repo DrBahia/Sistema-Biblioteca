@@ -615,6 +615,9 @@ void buscar_por_matricula()   {
 
 
 /*Menu Principal*/
+
+
+
 void menu_principal(){
     int opcao = -1;
     while (opcao != 0){
@@ -637,6 +640,10 @@ void menu_principal(){
         printf("   9 - Buscar livro por autor\n");
         printf("  10 - Buscar usuario por matricula\n");
         printf("---------------------------------------------\n");
+        printf("  ORDENACAO\n");
+        printf("  11 - Livros por titulo (Bubble Sort)\n");
+        printf("  12 - Usuarios por nome (Selection Sort)\n");
+        printf("---------------------------------------------\n");
         printf("   0 - Salvar e sair\n");
         printf("=============================================\n");
         printf("Escolha uma opcao: ");
@@ -654,12 +661,14 @@ void menu_principal(){
             case 8:  buscar_por_titulo();    break;
             case 9:  buscar_por_autor();     break;
             case 10: buscar_por_matricula(); break;
+            case 11: listar_livros_ordenados();   break;
+            case 12: listar_usuarios_ordenados(); break;
             case 0:
                 salvar_dados();
                 printf("\nDados salvos. Encerrando o sistema\n");
                 break;
             default:
-                printf("\nOpcao invalida! Digite um numero de 0 a 10.\n");
+                printf("\nOpcao invalida! Digite um numero de 0 a 12.\n");
         }
 
         if (opcao != 0)
@@ -668,7 +677,136 @@ void menu_principal(){
     };
 }
 
+/*Algoritmos de ordenacao*/
 
+void bubble_sort_livros(Livro v[], int n) {
+    int i, j, trocou;
+    Livro aux;
 
+    for (i = 0; i < n - 1; i++) {
+        trocou = 0;
+        for (j = 0; j < n - 1 - i; j++) {
+            if (strcmp(v[j].titulo, v[j + 1].titulo) > 0) {
+                aux = v[j];
+                v[j] = v[j + 1];
+                v[j + 1] = aux;
+                trocou = 1;
+            }
+        }
+        if (trocou == 0)
+            break;
+    }
+}
 
+void selection_sort_usuarios(Usuario v[], int n) {
+    int i, j, menor;
+    Usuario aux;
 
+    for (i = 0; i < n - 1; i++) {
+        menor = i;
+        for (j = i + 1; j < n; j++) {
+            if (strcmp(v[j].nome, v[menor].nome) < 0)
+                menor = j;
+        }
+        if (menor != i) {
+            aux = v[i];
+            v[i] = v[menor];
+            v[menor] = aux;
+        }
+    }
+}
+
+void selection_sort_usuarios(Usuario v[], int n) {
+    int i, j, menor;
+    Usuario aux;
+
+    for (i = 0; i < n - 1; i++) {
+        menor = i;
+        for (j = i + 1; j < n; j++) {
+            if (strcmp(v[j].nome, v[menor].nome) < 0)
+                menor = j;
+        }
+        if (menor != i) {
+            aux = v[i];
+            v[i] = v[menor];
+            v[menor] = aux;
+        }
+    }
+}
+void listar_livros_ordenados() {
+    printf("\n[Livros ordenados por titulo - Bubble Sort]\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_livros == 0) {
+        printf("\nNenhum livro cadastrado em %s.\n", ARQ_LIVROS);
+        return;
+    }
+
+    Livro *copia = malloc(total_livros * sizeof *copia);
+    if (copia == NULL) {
+        printf("\nErro: sem memoria para ordenar os livros.\n");
+        return;
+    }
+    for (int i = 0; i < total_livros; i++)
+        copia[i] = livros[i];
+
+    bubble_sort_livros(copia, total_livros);
+
+    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
+           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
+    printf("-------+-------------------------------------+---------------------------+------+------\n");
+
+    for (int i = 0; i < total_livros; i++) {
+        printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
+               copia[i].codigo, copia[i].titulo, copia[i].autor,
+               copia[i].ano, copia[i].quantidade);
+    }
+
+    printf("\nTotal de livros cadastrados: %d\n", total_livros);
+
+    free(copia);
+    copia = NULL;
+}
+void listar_usuarios_ordenados() {
+    printf("\n[Usuarios ordenados por nome - Selection Sort]\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_usuarios == 0) {
+        printf("\nNenhum usuario cadastrado em %s.\n", ARQ_USUARIOS);
+        return;
+    }
+
+    Usuario *copia = malloc(total_usuarios * sizeof *copia);
+    if (copia == NULL) {
+        printf("\nErro: sem memoria para ordenar os usuarios.\n");
+        return;
+    }
+    for (int i = 0; i < total_usuarios; i++)
+        copia[i] = usuarios[i];
+
+    selection_sort_usuarios(copia, total_usuarios);
+
+    printf("\n%-12s | %-35s | %-25s\n",
+           "Matricula", "Nome", "Curso");
+    printf("-------------+-------------------------------------+---------------------------\n");
+
+    for (int i = 0; i < total_usuarios; i++) {
+        printf("%-12s | %-35s | %-25s\n",
+               copia[i].matricula, copia[i].nome, copia[i].curso);
+    }
+
+    printf("\nTotal de usuarios cadastrados: %d\n", total_usuarios);
+
+    free(copia);
+    copia = NULL;
+}

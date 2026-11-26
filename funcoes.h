@@ -25,7 +25,7 @@ int garantir_cap_usuarios();
 int garantir_cap_emprestimos();
 void liberar_dados();
 
-/*Funções do sistema (a implementar)*/
+/*Funções do sistema*/
 void cadastrar_livro();
 void cadastrar_usuario();
 void registrar_emprestimo();
@@ -42,6 +42,8 @@ void buscar_por_matricula();
 /*Menu Principal*/
 void menu_principal();
 
-
+/*Algoritmos de ordenacao*/
+void listar_livros_ordenados();
+void listar_usuarios_ordenados();
 
 #endif
