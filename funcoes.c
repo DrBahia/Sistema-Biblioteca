@@ -679,6 +679,7 @@ void menu_principal(){
 
 /*Algoritmos de ordenacao*/
 
+/*Bubble Sort por titulo em ordem alfabetica*/
 void bubble_sort_livros(Livro v[], int n) {
     int i, j, trocou;
     Livro aux;
@@ -698,7 +699,7 @@ void bubble_sort_livros(Livro v[], int n) {
     }
 }
 
-
+/*Selection Sort por usuario em ordem alfabetica*/
 void selection_sort_usuarios(Usuario v[], int n) {
     int i, j, menor;
     Usuario aux;
@@ -716,6 +717,7 @@ void selection_sort_usuarios(Usuario v[], int n) {
         }
     }
 }
+
 void listar_livros_ordenados() {
     printf("\n[Livros ordenados por titulo - Bubble Sort]\n");
 
@@ -730,30 +732,20 @@ void listar_livros_ordenados() {
         return;
     }
 
-    Livro *copia = malloc(total_livros * sizeof *copia);
-    if (copia == NULL) {
-        printf("\nErro: sem memoria para ordenar os livros.\n");
-        return;
-    }
-    for (int i = 0; i < total_livros; i++)
-        copia[i] = livros[i];
+    bubble_sort_livros(livros, total_livros);
 
-    bubble_sort_livros(copia, total_livros);
-
-    printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
-           "Codigo", "Titulo", "Autor", "Ano", "Qtd");
-    printf("-------+-------------------------------------+---------------------------+------+------\n");
-
+    if (salvar_livros()){
+        printf("\nOrdem gravada em %s.\n", ARQ_LIVROS);}
+    else{
+        printf("\nErro: nao foi possivel gravar %s\n", ARQ_LIVROS);}
     for (int i = 0; i < total_livros; i++) {
         printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
-               copia[i].codigo, copia[i].titulo, copia[i].autor,
-               copia[i].ano, copia[i].quantidade);
+              livros[i].codigo, livros[i].titulo, livros[i].autor,
+              livros[i].ano, livros[i].quantidade);
     }
 
     printf("\nTotal de livros cadastrados: %d\n", total_livros);
 
-    free(copia);
-    copia = NULL;
 }
 void listar_usuarios_ordenados() {
     printf("\n[Usuarios ordenados por nome - Selection Sort]\n");
@@ -769,27 +761,20 @@ void listar_usuarios_ordenados() {
         return;
     }
 
-    Usuario *copia = malloc(total_usuarios * sizeof *copia);
-    if (copia == NULL) {
-        printf("\nErro: sem memoria para ordenar os usuarios.\n");
-        return;
-    }
-    for (int i = 0; i < total_usuarios; i++)
-        copia[i] = usuarios[i];
-
-    selection_sort_usuarios(copia, total_usuarios);
-
+    selection_sort_usuarios(usuarios, total_usuarios);
+   if (salvar_usuarios()){
+       printf("\nOrdem gravada em %s.\n", ARQ_USUARIOS);}
+    else{
+        printf("\nErro: nao foi possivel gravar %s\n", ARQ_USUARIOS);}
     printf("\n%-12s | %-35s | %-25s\n",
            "Matricula", "Nome", "Curso");
     printf("-------------+-------------------------------------+---------------------------\n");
 
     for (int i = 0; i < total_usuarios; i++) {
         printf("%-12s | %-35s | %-25s\n",
-               copia[i].matricula, copia[i].nome, copia[i].curso);
+               usuarios[i].matricula, usuarios[i].nome, usuarios[i].curso);
     }
 
     printf("\nTotal de usuarios cadastrados: %d\n", total_usuarios);
 
-    free(copia);
-    copia = NULL;
 }
