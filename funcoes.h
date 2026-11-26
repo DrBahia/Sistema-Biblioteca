@@ -46,4 +46,9 @@ void menu_principal();
 void listar_livros_ordenados();
 void listar_usuarios_ordenados();
 
+/*Historico por usuario*/
+void exibir_historico_usuario(int x);
+void historico_por_usuario();
+void historico_todos_usuarios();
+
 #endif

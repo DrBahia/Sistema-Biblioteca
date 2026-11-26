@@ -380,11 +380,22 @@ void registrar_emprestimo() {
     printf("Matrícula do Utilizador: ");
     scanf(" %19[^\n]", novo.matricula);
 
+    int indice_usuario = -1;
+    for (int i = 0; i < total_usuarios; i++) {
+        if (strcmp(usuarios[i].matricula, novo.matricula) == 0) {
+            indice_usuario = i;
+            break;
+        }
+    }
+    if (indice_usuario == -1) {
+        printf("Erro: Matricula nao cadastrada no sistema.\n");
+        return;
+    }
     novo.devolvido = 0;
     emprestimos[total_emprestimos] = novo;
     total_emprestimos++;
     livros[indice_livro].quantidade--;
-
+    salvar_dados();
     printf("\nEmprestimo registrado.\n");
 }
 void registrar_devolucao() {
@@ -412,6 +423,7 @@ void registrar_devolucao() {
                     break;
                 }
             }
+            salvar_dados();
             printf("Devolucao cadastrada com sucesso.");
             break;
         }
@@ -644,6 +656,10 @@ void menu_principal(){
         printf("  11 - Livros por titulo (Bubble Sort)\n");
         printf("  12 - Usuarios por nome (Selection Sort)\n");
         printf("---------------------------------------------\n");
+        printf("  HISTORICO\n");
+        printf("  13 - Historico de um usuario\n");
+        printf("  14 - Historico de todos os usuarios\n");
+        printf("---------------------------------------------\n");
         printf("   0 - Salvar e sair\n");
         printf("=============================================\n");
         printf("Escolha uma opcao: ");
@@ -663,12 +679,14 @@ void menu_principal(){
             case 10: buscar_por_matricula(); break;
             case 11: listar_livros_ordenados();   break;
             case 12: listar_usuarios_ordenados(); break;
+            case 13: historico_por_usuario();     break;
+            case 14: historico_todos_usuarios();  break;
             case 0:
                 salvar_dados();
                 printf("\nDados salvos. Encerrando o sistema\n");
                 break;
             default:
-                printf("\nOpcao invalida! Digite um numero de 0 a 12.\n");
+                printf("\nOpcao invalida! Digite um numero de 0 a 14.\n");
         }
 
         if (opcao != 0)
@@ -777,4 +795,96 @@ void listar_usuarios_ordenados() {
 
     printf("\nTotal de usuarios cadastrados: %d\n", total_usuarios);
 
+}
+
+/*Historico por usuario*/
+
+/* Mostra todos os emprestimos (em aberto e devolvidos) do usuario*/
+void exibir_historico_usuario(int x) {
+    int total = 0, em_aberto = 0, devolvidos = 0;
+
+    printf("\nMatricula: %s\n", usuarios[x].matricula);
+    printf("Nome:      %s\n", usuarios[x].nome);
+    printf("Curso:     %s\n", usuarios[x].curso);
+
+    printf("\n%-6s | %-35s | %-10s\n", "Codigo", "Titulo", "Situacao");
+    printf("-------+-------------------------------------+-----------\n");
+
+    for (int i = 0; i < total_emprestimos; i++) {
+        if (strcmp(emprestimos[i].matricula, usuarios[x].matricula) != 0)
+            continue;
+
+        char *titulo = "(livro nao encontrado)";
+        for (int j = 0; j < total_livros; j++) {
+            if (livros[j].codigo == emprestimos[i].codigo_livro) {
+                titulo = livros[j].titulo;
+                break;
+            }
+        }
+
+        char *status = (emprestimos[i].devolvido == 1) ? "DEVOLVIDO" : "EM ABERTO";
+        printf("%-6d | %-35.35s | %-10s\n",
+               emprestimos[i].codigo_livro, titulo, status);
+
+        total++;
+        if (emprestimos[i].devolvido == 1)
+            devolvidos++;
+        else
+            em_aberto++;
+    }
+
+    if (total == 0)
+        printf("Nenhum emprestimo registrado para este usuario.\n");
+
+    printf("\nTotal: %d | Em aberto: %d | Devolvidos: %d\n",
+           total, em_aberto, devolvidos);
+}
+
+/* Pede uma matricula e mostra o historico completo daquele usuario. */
+void historico_por_usuario() {
+    printf("\n[Historico de emprestimos por usuario]\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    char matricula[20];
+    printf("Matricula: ");
+    scanf(" %19[^\n]", matricula);
+    limpar_buffer();
+
+    for (int i = 0; i < total_usuarios; i++) {
+        if (strcmp(usuarios[i].matricula, matricula) == 0) {
+            exibir_historico_usuario(i);
+            return;
+        }
+    }
+
+    printf("\nErro: Matricula nao cadastrada no sistema.\n");
+}
+
+/* Mostra o historico completo de cada usuario cadastrado. */
+void historico_todos_usuarios() {
+    printf("\n[Historico de emprestimos de todos os usuarios]\n");
+
+    salvar_dados();
+    total_livros      = 0;
+    total_usuarios    = 0;
+    total_emprestimos = 0;
+    carregar_dados();
+
+    if (total_usuarios == 0) {
+        printf("\nNenhum usuario cadastrado em %s.\n", ARQ_USUARIOS);
+        return;
+    }
+
+    for (int i = 0; i < total_usuarios; i++) {
+        printf("\n=============================================\n");
+        exibir_historico_usuario(i);
+    }
+    printf("\n=============================================\n");
+    printf("Usuarios cadastrados: %d | Emprestimos registrados: %d\n",
+           total_usuarios, total_emprestimos);
 }
