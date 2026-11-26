@@ -2,6 +2,7 @@
 #include "funcoes.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 /*Utilitários de terminal*/
@@ -11,7 +12,7 @@ void limpar_tela() {
     system("cls");
 #else
     system("clear");
-#endif
+#endif  
 }
 
 void limpar_buffer() {
@@ -78,11 +79,6 @@ int cap_usuarios    = 0;
 int cap_emprestimos = 0;
 
 int inicializar_dados() {
-    if (!inicializar_dados()) {
-        printf("\nErro: sem memoria para iniciar o sistema.\n");
-        liberar_dados();
-        exit(1);
-    }
     if (livros == NULL) {
         livros = malloc(CAP_INICIAL * sizeof *livros);
         if (livros == NULL) return 0;
@@ -523,7 +519,7 @@ void buscar_por_titulo(){
     total_emprestimos = 0;
     carregar_dados();
 
-    char titulo[100];
+    char titulo[100] = "";
     printf("Titulo:\n");
     scanf("%99[^\n]", titulo);
     limpar_buffer();
@@ -551,7 +547,6 @@ void buscar_por_titulo(){
            "Codigo", "Titulo", "Autor", "Ano", "Qtd");
     printf("-------+-------------------------------------+---------------------------+------+------\n");
     if (encontrado != -1) {
-        // Volta para o primeiro livro caso existam varios com o mesmo titulo
         while (encontrado > 0 && strcmp(livros[encontrado - 1].titulo, titulo) == 0) {
             encontrado--;
         }
@@ -566,8 +561,55 @@ void buscar_por_titulo(){
     if (n == 0) {
         printf("Nenhum livro encontrado\n");
     }
-}
 
+    if (total_livros > 0) {
+        const int REP = 10000;
+        volatile int achou = -1;
+
+        clock_t ts = clock();
+        for (int r = 0; r < REP; r++) {
+            achou = -1;
+            for (int i = 0; i < total_livros; i++) {
+                if (strcmp(livros[i].titulo, titulo) == 0) {
+                    achou = i;
+                    break;
+                }
+            }
+        }
+        double t_seq = (double)(clock() - ts) / CLOCKS_PER_SEC;
+
+        clock_t tb = clock();
+        for (int r = 0; r < REP; r++) {
+            int a = 0, b = total_livros - 1;
+            achou = -1;
+            while (a <= b) {
+                int m = a + (b - a) / 2;
+                int c = strcmp(livros[m].titulo, titulo);
+                if (c == 0) {
+                    achou = m;
+                    break;
+                } else if (c < 0) {
+                    a = m + 1;
+                } else {
+                    b = m - 1;
+                }
+            }
+        }
+        double t_bin = (double)(clock() - tb) / CLOCKS_PER_SEC;
+        (void)achou;
+
+        printf("\nRelatorio de desempenho:\n");
+        printf("Em %d buscas realizadas, a busca sequencial levou %.6f segundos, enquanto a pesquisa binaria levou %.6f segundos. ",
+               REP, t_seq, t_bin);
+        if (t_bin < t_seq) {
+            printf("A pesquisa binaria foi %.6f segundos mais rapida.\n", t_seq - t_bin);
+        } else if (t_seq < t_bin) {
+            printf("A busca sequencial foi %.6f segundos mais rapida.\n", t_bin - t_seq);
+        } else {
+            printf("As duas buscas levaram o mesmo tempo.\n");
+        }
+    }
+}
 
 void buscar_por_autor()       {
     printf("\n[Buscar livro por autor]\n");

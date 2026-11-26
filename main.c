@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "funcoes.h"
 #include <stdlib.h>
+#include <time.h>
 
 int main(){
     carregar_dados();
