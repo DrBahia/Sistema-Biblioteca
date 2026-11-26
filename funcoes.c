@@ -36,9 +36,9 @@ int ler_opcao() {
 
 /*Estruturas de dados*/
 
-#define ARQ_LIVROS      "livros.csv"
-#define ARQ_USUARIOS    "usuarios.csv"
-#define ARQ_EMPRESTIMOS "emprestimos.csv"
+#define ARQ_LIVROS      "livros.dat"
+#define ARQ_USUARIOS    "usuarios.dat"
+#define ARQ_EMPRESTIMOS "emprestimos.dat"
 
 /*Capacidade inicial de cada vetor dinamico.*/
 #define CAP_INICIAL 4
@@ -139,75 +139,75 @@ void liberar_dados() {
     cap_livros = cap_usuarios = cap_emprestimos = 0;
 }
 
-/* ---------- Persistência em arquivos CSV ---------- */
-/* Formato: uma linha de cabeçalho e depois um registro por linha,
-   com os campos separados por ';'*/
+/* ---------- Persistência em arquivos binários ---------- */
+/* Formato: um int com a quantidade de registros, seguido dos
+   registros (structs) gravados em sequência com fwrite. */
 
 
-//Formato: Codigo, Titulo, Autor, Ano, Quantidade
 void carregar_livros() {
-    FILE *arq = fopen(ARQ_LIVROS, "r");
+    FILE *arq = fopen(ARQ_LIVROS, "rb");
     if (arq == NULL)
         return;     /* primeira execução: arquivo ainda não existe */
 
-    fscanf(arq, "%*[^\n]");     /* pula o cabeçalho */
-
-    while (1) {
-         if (!garantir_cap_livros()) {
-            printf("\nErro: sem memoria para carregar todos os livros.\n");
-            break;
+    int qtd = 0;
+    if (fread(&qtd, sizeof(int), 1, arq) == 1 && qtd > 0) {
+        if (qtd > cap_livros) {
+            Livro *aux = realloc(livros, qtd * sizeof *livros);
+            if (aux == NULL) {
+                printf("\nErro: sem memoria para carregar os livros.\n");
+                fclose(arq);
+                return;
+            }
+            livros = aux;
+            cap_livros = qtd;
         }
-        Livro *l = &livros[total_livros];
-        if (fscanf(arq, " %d;%99[^;];%99[^;];%d;%d",
-                   &l->codigo, l->titulo, l->autor, &l->ano, &l->quantidade) != 5)
-            break;
-        total_livros++;
+        total_livros = fread(livros, sizeof(Livro), qtd, arq);
     }
 
     fclose(arq);
 }
 
-//Formato: Matricula, Nome, Curso
 void carregar_usuarios() {
-    FILE *arq = fopen(ARQ_USUARIOS, "r");
+    FILE *arq = fopen(ARQ_USUARIOS, "rb");
     if (arq == NULL)
         return;
 
-    fscanf(arq, "%*[^\n]");
-
-    while (1) {
-        if (!garantir_cap_usuarios()) {
-            printf("\nErro: sem memoria para carregar todos os ususarios.\n");
-            break;
+    int qtd = 0;
+    if (fread(&qtd, sizeof(int), 1, arq) == 1 && qtd > 0) {
+        if (qtd > cap_usuarios) {
+            Usuario *aux = realloc(usuarios, qtd * sizeof *usuarios);
+            if (aux == NULL) {
+                printf("\nErro: sem memoria para carregar os usuarios.\n");
+                fclose(arq);
+                return;
+            }
+            usuarios = aux;
+            cap_usuarios = qtd;
         }
-        Usuario *u = &usuarios[total_usuarios];
-        if (fscanf(arq, " %19[^;];%99[^;];%99[^\r\n]",
-                   u->matricula, u->nome, u->curso) != 3)
-            break;
-        total_usuarios++;
+        total_usuarios = fread(usuarios, sizeof(Usuario), qtd, arq);
     }
 
     fclose(arq);
 }
 
-//Formato: Codigo, Matricula, Devolvido(0 = em aberto, 1 = devolvido)
 void carregar_emprestimos() {
-    FILE *arq = fopen(ARQ_EMPRESTIMOS, "r");
+    FILE *arq = fopen(ARQ_EMPRESTIMOS, "rb");
     if (arq == NULL)
         return;
 
-    fscanf(arq, "%*[^\n]");
-
-    while (1) {
-        if (!garantir_cap_emprestimos()) {
-            printf("\nErro: sem memoria para carregar todos os emprestimos.\n");
-            break;
+    int qtd = 0;
+    if (fread(&qtd, sizeof(int), 1, arq) == 1 && qtd > 0) {
+        if (qtd > cap_emprestimos) {
+            Emprestimo *aux = realloc(emprestimos, qtd * sizeof *emprestimos);
+            if (aux == NULL) {
+                printf("\nErro: sem memoria para carregar os emprestimos.\n");
+                fclose(arq);
+                return;
+            }
+            emprestimos = aux;
+            cap_emprestimos = qtd;
         }
-        Emprestimo *e = &emprestimos[total_emprestimos];
-        if (fscanf(arq, " %d;%19[^;];%d",
-                   &e->codigo_livro, e->matricula, &e->devolvido) != 3)
-            break;
-        total_emprestimos++;
+        total_emprestimos = fread(emprestimos, sizeof(Emprestimo), qtd, arq);
     }
 
     fclose(arq);
@@ -221,43 +221,28 @@ void carregar_dados() {
 
 /* Retornam 1 se salvou, 0 se não conseguiu abrir o arquivo */
 int salvar_livros() {
-    FILE *arq = fopen(ARQ_LIVROS, "w");
-    if (arq == NULL)
-        return 0;
-
-    fprintf(arq, "codigo;titulo;autor;ano;quantidade\n");
-    for (int i = 0; i < total_livros; i++)
-        fprintf(arq, "%d;%s;%s;%d;%d\n", livros[i].codigo, livros[i].titulo,
-                livros[i].autor, livros[i].ano, livros[i].quantidade);
-
+    FILE *arq = fopen(ARQ_LIVROS, "wb");
+    if (arq == NULL) return 0;
+    fwrite(&total_livros, sizeof(int), 1, arq);
+    if (total_livros > 0) fwrite(livros, sizeof(Livro), total_livros, arq);
     fclose(arq);
     return 1;
 }
 
 int salvar_usuarios() {
-    FILE *arq = fopen(ARQ_USUARIOS, "w");
-    if (arq == NULL)
-        return 0;
-
-    fprintf(arq, "matricula;nome;curso\n");
-    for (int i = 0; i < total_usuarios; i++)
-        fprintf(arq, "%s;%s;%s\n", usuarios[i].matricula,
-                usuarios[i].nome, usuarios[i].curso);
-
+    FILE *arq = fopen(ARQ_USUARIOS, "wb");
+    if (arq == NULL) return 0;
+    fwrite(&total_usuarios, sizeof(int), 1, arq);
+    if (total_usuarios > 0) fwrite(usuarios, sizeof(Usuario), total_usuarios, arq);
     fclose(arq);
     return 1;
 }
 
 int salvar_emprestimos() {
-    FILE *arq = fopen(ARQ_EMPRESTIMOS, "w");
-    if (arq == NULL)
-        return 0;
-
-    fprintf(arq, "codigo_livro;matricula;devolvido\n");
-    for (int i = 0; i < total_emprestimos; i++)
-        fprintf(arq, "%d;%s;%d\n", emprestimos[i].codigo_livro,
-                emprestimos[i].matricula, emprestimos[i].devolvido);
-
+    FILE *arq = fopen(ARQ_EMPRESTIMOS, "wb");
+    if (arq == NULL) return 0;
+    fwrite(&total_emprestimos, sizeof(int), 1, arq);
+    if (total_emprestimos > 0) fwrite(emprestimos, sizeof(Emprestimo), total_emprestimos, arq);
     fclose(arq);
     return 1;
 }
@@ -525,9 +510,12 @@ void listar_emprestimos(){
     printf("\nTotal de emprestimos cadastrados: %d\n", total_emprestimos);
 }
 
-//Funções de busca
+//Funções de busca (ordenacao + busca binaria, texto exato)
+
+void bubble_sort_livros(Livro v[], int n);   /* definida em Algoritmos de ordenacao */
+
 void buscar_por_titulo(){
-    printf("\n[Buscar livro por titulo]\n"); 
+    printf("\n[Buscar livro por titulo]\n");
     salvar_dados();
 
     total_livros      = 0;
@@ -540,26 +528,49 @@ void buscar_por_titulo(){
     scanf("%99[^\n]", titulo);
     limpar_buffer();
 
+    bubble_sort_livros(livros, total_livros);
+
+    int inicio = 0;
+    int fim = total_livros - 1;
+    int encontrado = -1;
+    while (inicio <= fim) {
+        int meio = inicio + (fim - inicio) / 2;
+        int cmp = strcmp(livros[meio].titulo, titulo);
+        if (cmp == 0) {
+            encontrado = meio;
+            break;
+        } else if (cmp < 0) {
+            inicio = meio + 1;
+        } else {
+            fim = meio - 1;
+        }
+    }
+
     int n = 0;
     printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
            "Codigo", "Titulo", "Autor", "Ano", "Qtd");
     printf("-------+-------------------------------------+---------------------------+------+------\n");
-    for(int i=0; i <total_livros; i++){
-        if (strstr(livros[i].titulo, titulo) != NULL){
+    if (encontrado != -1) {
+        // Volta para o primeiro livro caso existam varios com o mesmo titulo
+        while (encontrado > 0 && strcmp(livros[encontrado - 1].titulo, titulo) == 0) {
+            encontrado--;
+        }
+        for (int i = encontrado; i < total_livros && strcmp(livros[i].titulo, titulo) == 0; i++) {
             printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
-               livros[i].codigo, livros[i].titulo, livros[i].autor,
-               livros[i].ano, livros[i].quantidade);
-               n++;
-            }
-    };
-    if(n == 0){
-        printf("Nenhum livro encontrado");
+                   livros[i].codigo, livros[i].titulo, livros[i].autor,
+                   livros[i].ano, livros[i].quantidade);
+            n++;
+        }
+    }
+
+    if (n == 0) {
+        printf("Nenhum livro encontrado\n");
     }
 }
 
 
 void buscar_por_autor()       {
-    printf("\n[Buscar livro por autor]\n"); 
+    printf("\n[Buscar livro por autor]\n");
     salvar_dados();
 
     total_livros      = 0;
@@ -568,31 +579,60 @@ void buscar_por_autor()       {
     carregar_dados();
 
     char autor[100];
-    printf("Titulo:\n");
+    printf("Autor:\n");
     scanf("%99[^\n]", autor);
     limpar_buffer();
 
-    int n = 0;
+    for (int i=0;i< total_livros-1; i++) {
+        for (int j=0; j< total_livros -i- 1; j++) {
+            if (strcmp(livros[j].autor, livros[j+1].autor) > 0) {
+                Livro temp = livros[j];
+                livros[j] = livros[j+1];
+                livros[j+1] = temp;
+            }
+        }
+    }
+    int inicio = 0;
+    int fim = total_livros - 1;
+    int encontrado = -1;
 
-    
+    while (inicio <= fim) {
+        int meio = inicio + (fim-inicio) / 2;
+        int cmp = strcmp(livros[meio].autor, autor);
+
+        if (cmp == 0) {
+            encontrado = meio;
+            break;
+        } else if (cmp < 0) {
+            inicio = meio + 1;
+        } else {
+            fim = meio - 1;
+        }
+    }
+
+    int n = 0;
     printf("\n%-6s | %-35s | %-25s | %-4s | %-5s\n",
            "Codigo", "Titulo", "Autor", "Ano", "Qtd");
     printf("-------+-------------------------------------+---------------------------+------+------\n");
-    for(int i=0; i <total_livros; i++){
-        if (strstr(livros[i].autor, autor) != NULL){
+    if (encontrado != -1) {
+        // Volta para o primeiro livro caso o autor tenha mais de um livro cadastrado
+        while (encontrado > 0 && strcmp(livros[encontrado - 1].autor, autor) == 0) {
+            encontrado--;
+        }
+        for (int i = encontrado; i < total_livros && strcmp(livros[i].autor, autor) == 0; i++) {
             printf("%-6d | %-35.35s | %-25.25s | %-4d | %-5d\n",
-               livros[i].codigo, livros[i].titulo, livros[i].autor,
-               livros[i].ano, livros[i].quantidade);
-               n++;
-            }
-    };
-    if(n == 0){
-        printf("Nenhum livro encontrado");
+                   livros[i].codigo, livros[i].titulo, livros[i].autor,
+                   livros[i].ano, livros[i].quantidade);
+            n++;
+        }
+    }
+
+    if (n == 0) {
+        printf("Nenhum livro encontrado\n");
     }
 }
-void buscar_por_matricula()   { 
+void buscar_por_matricula()   {
     printf("\n[Buscar usuario por matricula]\n");
-
     salvar_dados();
 
     total_livros      = 0;
@@ -605,21 +645,45 @@ void buscar_por_matricula()   {
     scanf("%99[^\n]", matricula);
     limpar_buffer();
 
-    int n = 0;
+    for (int i=0;i< total_usuarios-1; i++) {
+        for (int j=0; j< total_usuarios -i- 1; j++) {
+            if (strcmp(usuarios[j].matricula, usuarios[j+1].matricula) > 0) {
+                Usuario temp = usuarios[j];
+                usuarios[j] = usuarios[j + 1];
+                usuarios[j + 1] = temp;
+            }
+        }
+    }
+    int inicio = 0;
+    int fim = total_usuarios - 1;
+    int encontrado = -1;
+
+    while (inicio <= fim) {
+        int meio = inicio + (fim - inicio) / 2;
+        int cmp = strcmp(usuarios[meio].matricula, matricula);
+
+        if (cmp == 0) {
+            encontrado = meio;
+            break;
+        } else if (cmp < 0) {
+            inicio = meio + 1;
+        } else {
+            fim = meio - 1;
+        }
+    }
+
     printf("\n%-12s | %-35s | %-25s\n",
            "Matricula", "Nome", "Curso");
     printf("-------------+-------------------------------------+---------------------------\n");
-    for(int i=0; i <total_usuarios; i++){
-        if (strstr(usuarios[i].matricula, matricula) != NULL){
-            printf("%-12s | %-35s | %-25s\n",
-            usuarios[i].matricula, usuarios[i].nome, usuarios[i].curso);
-            n++;
-            }
-    };
-    if(n == 0){
-        printf("Nenhum usuario encontrado");
+
+    if (encontrado != -1) {
+        printf("%-12s | %-35s | %-25s\n",
+               usuarios[encontrado].matricula,
+               usuarios[encontrado].nome,
+               usuarios[encontrado].curso);
+    } else {
+        printf("Nenhum usuario encontrado\n");
     }
-    
 }
 
 
