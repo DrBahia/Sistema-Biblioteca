@@ -37,7 +37,6 @@ Abra um terminal na pasta do projeto e compile **os dois arquivos `.c` juntos**:
 gcc main.c funcoes.c -o biblioteca.exe
 ```
 
-> Compilar apenas o arquivo aberto (por exemplo, a tarefa padrão "build active file" do VS Code) gera erro de *undefined reference*, pois `main.c` depende das funções de `funcoes.c`.
 
 ## Execução
 
