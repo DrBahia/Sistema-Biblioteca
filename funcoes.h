@@ -19,6 +19,11 @@ int salvar_livros();
 int salvar_usuarios();
 int salvar_emprestimos();
 int salvar_dados();
+int inicializar_dados();
+int garantir_cap_livros();
+int garantir_cap_usuarios();
+int garantir_cap_emprestimos();
+void liberar_dados();
 
 /*Funções do sistema (a implementar)*/
 void cadastrar_livro();

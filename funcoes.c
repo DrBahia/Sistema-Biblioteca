@@ -36,13 +36,13 @@ int ler_opcao() {
 
 /*Estruturas de dados*/
 
-#define MAX_LIVROS      500
-#define MAX_USUARIOS    500
-#define MAX_EMPRESTIMOS 1000
-
 #define ARQ_LIVROS      "livros.csv"
 #define ARQ_USUARIOS    "usuarios.csv"
 #define ARQ_EMPRESTIMOS "emprestimos.csv"
+
+/*Capacidade inicial de cada vetor dinamico.*/
+#define CAP_INICIAL 4
+
 
 typedef struct {
     int  codigo;
@@ -64,13 +64,80 @@ typedef struct {
     int  devolvido;     /* 0 = em aberto, 1 = devolvido */
 } Emprestimo;
 
-Livro      livros[MAX_LIVROS];
-Usuario    usuarios[MAX_USUARIOS];
-Emprestimo emprestimos[MAX_EMPRESTIMOS];
+Livro      *livros      = NULL;
+Usuario    *usuarios    = NULL;
+Emprestimo *emprestimos = NULL;
 
 int total_livros      = 0;
 int total_usuarios    = 0;
 int total_emprestimos = 0;
+
+
+int cap_livros      = 0;           // capacidade reservada
+int cap_usuarios    = 0;
+int cap_emprestimos = 0;
+
+int inicializar_dados() {
+    if (!inicializar_dados()) {
+        printf("\nErro: sem memoria para iniciar o sistema.\n");
+        liberar_dados();
+        exit(1);
+    }
+    if (livros == NULL) {
+        livros = malloc(CAP_INICIAL * sizeof *livros);
+        if (livros == NULL) return 0;
+        cap_livros = CAP_INICIAL;
+    }
+    if (usuarios == NULL) {
+        usuarios = malloc(CAP_INICIAL * sizeof *usuarios);
+        if (usuarios == NULL) return 0;
+        cap_usuarios = CAP_INICIAL;
+    }
+    if (emprestimos == NULL) {
+        emprestimos = malloc(CAP_INICIAL * sizeof *emprestimos);
+        if (emprestimos == NULL) return 0;
+        cap_emprestimos = CAP_INICIAL;
+    }
+    return 1;
+}
+int garantir_cap_livros() { 
+    if (total_livros < cap_livros) return 1;
+    int nova = (cap_livros == 0) ? CAP_INICIAL : cap_livros * 2;
+    Livro *aux = realloc(livros, nova * sizeof *livros);
+    if (aux == NULL) return 0;
+    livros = aux;
+    cap_livros = nova;
+    return 1;
+}
+int garantir_cap_usuarios() {
+    if (total_usuarios < cap_usuarios) return 1;
+    int nova = (cap_usuarios == 0) ? CAP_INICIAL : cap_usuarios * 2;
+    Usuario *aux = realloc(usuarios, nova * sizeof *usuarios);
+    if (aux == NULL) return 0;
+    usuarios = aux;
+    cap_usuarios = nova;
+    return 1;
+}
+int garantir_cap_emprestimos() {
+    if (total_emprestimos < cap_emprestimos) return 1;
+    int nova = (cap_emprestimos == 0) ? CAP_INICIAL : cap_emprestimos * 2;
+    Emprestimo *aux = realloc(emprestimos, nova * sizeof *emprestimos);
+    if (aux == NULL) return 0;
+    emprestimos = aux;
+    cap_emprestimos = nova;
+    return 1;
+}
+void liberar_dados() {
+    free(livros);
+    livros = NULL;
+    free(usuarios);
+    usuarios = NULL;
+    free(emprestimos);
+    emprestimos = NULL;
+
+    total_livros = total_usuarios = total_emprestimos = 0;
+    cap_livros = cap_usuarios = cap_emprestimos = 0;
+}
 
 /* ---------- Persistência em arquivos CSV ---------- */
 /* Formato: uma linha de cabeçalho e depois um registro por linha,
@@ -85,7 +152,11 @@ void carregar_livros() {
 
     fscanf(arq, "%*[^\n]");     /* pula o cabeçalho */
 
-    while (total_livros < MAX_LIVROS) {
+    while (1) {
+         if (!garantir_cap_livros()) {
+            printf("\nErro: sem memoria para carregar todos os livros.\n");
+            break;
+        }
         Livro *l = &livros[total_livros];
         if (fscanf(arq, " %d;%99[^;];%99[^;];%d;%d",
                    &l->codigo, l->titulo, l->autor, &l->ano, &l->quantidade) != 5)
@@ -104,7 +175,11 @@ void carregar_usuarios() {
 
     fscanf(arq, "%*[^\n]");
 
-    while (total_usuarios < MAX_USUARIOS) {
+    while (1) {
+        if (!garantir_cap_usuarios()) {
+            printf("\nErro: sem memoria para carregar todos os ususarios.\n");
+            break;
+        }
         Usuario *u = &usuarios[total_usuarios];
         if (fscanf(arq, " %19[^;];%99[^;];%99[^\r\n]",
                    u->matricula, u->nome, u->curso) != 3)
@@ -123,7 +198,11 @@ void carregar_emprestimos() {
 
     fscanf(arq, "%*[^\n]");
 
-    while (total_emprestimos < MAX_EMPRESTIMOS) {
+    while (1) {
+        if (!garantir_cap_emprestimos()) {
+            printf("\nErro: sem memoria para carregar todos os emprestimos.\n");
+            break;
+        }
         Emprestimo *e = &emprestimos[total_emprestimos];
         if (fscanf(arq, " %d;%19[^;];%d",
                    &e->codigo_livro, e->matricula, &e->devolvido) != 3)
@@ -206,8 +285,8 @@ int salvar_dados() {
 
 void cadastrar_livro() {
     printf("\n[Cadastrar livro]\n");
-    if (total_livros >= MAX_LIVROS) {
-        printf("\nErro: Limite máximo de %d livros.", MAX_LIVROS);
+    if (!garantir_cap_livros()) {
+        printf("\nErro: sem memoria para cadastrar outro livro.\n");;
         return;
     }
     int temp_codigo;
@@ -242,8 +321,8 @@ void cadastrar_livro() {
 }
 void cadastrar_usuario() {
     printf("\n[Cadastrar usuario]\n");
-    if (total_usuarios >= MAX_USUARIOS) {
-        printf("\nErro, Limite máximo de %d usuários", MAX_USUARIOS);
+    if (!garantir_cap_usuarios()) {
+        printf("\nErro: sem memoria para cadastrar outro usuario.\n");
         return;
     }
     char temp_matricula[20];
@@ -273,8 +352,8 @@ void cadastrar_usuario() {
 void registrar_emprestimo() {
     printf("\n[Registrar emprestimo]\n");
 
-    if (total_emprestimos >= MAX_EMPRESTIMOS) {
-        printf("\nErro, Limite maximo de emprestimos atingido.");
+    if (!garantir_cap_emprestimos()) {
+        printf("\nErro: sem memoria para cadastrar outro emprestimo.");
         return;
     }
     Emprestimo novo;
@@ -446,7 +525,7 @@ void buscar_por_titulo(){
 
     char titulo[100];
     printf("Titulo:\n");
-    scanf("%99[^\n]", &titulo);
+    scanf("%99[^\n]", titulo);
     limpar_buffer();
 
     int n = 0;
@@ -478,7 +557,7 @@ void buscar_por_autor()       {
 
     char autor[100];
     printf("Titulo:\n");
-    scanf("%99[^\n]", &autor);
+    scanf("%99[^\n]", autor);
     limpar_buffer();
 
     int n = 0;
@@ -511,7 +590,7 @@ void buscar_por_matricula()   {
 
     char matricula[100];
     printf("Matricula:\n");
-    scanf("%99[^\n]", &matricula);
+    scanf("%99[^\n]", matricula);
     limpar_buffer();
 
     int n = 0;

@@ -5,5 +5,6 @@
 int main(){
     carregar_dados();
     menu_principal();
+    liberar_dados();
     return 0;
 }
