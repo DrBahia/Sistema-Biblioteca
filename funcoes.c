@@ -698,23 +698,6 @@ void bubble_sort_livros(Livro v[], int n) {
     }
 }
 
-void selection_sort_usuarios(Usuario v[], int n) {
-    int i, j, menor;
-    Usuario aux;
-
-    for (i = 0; i < n - 1; i++) {
-        menor = i;
-        for (j = i + 1; j < n; j++) {
-            if (strcmp(v[j].nome, v[menor].nome) < 0)
-                menor = j;
-        }
-        if (menor != i) {
-            aux = v[i];
-            v[i] = v[menor];
-            v[menor] = aux;
-        }
-    }
-}
 
 void selection_sort_usuarios(Usuario v[], int n) {
     int i, j, menor;
